@@ -180,8 +180,6 @@
     padding:1px 6px;border-radius:2px;margin-left:auto;
   }
   .day-detail{display:flex;flex-direction:column;}
-  .day-detail .task-input{font-size:20px;margin-bottom:6px;}
-  .day-detail .detail-input{font-size:14px;margin-bottom:14px;}
   .day-detail .done-toggle{margin-bottom:16px;font-size:14px;}
   .day-note-textarea{
     width:100%;min-height:140px;resize:none;border:1px solid rgba(var(--tint-rgb),0.2);border-radius:6px;
@@ -190,17 +188,7 @@
   }
   .day-note-textarea::placeholder{color:var(--muted);font-style:italic;}
   .day-ideas-heading{font-size:13px;font-weight:600;color:var(--text-soft);margin-bottom:8px;}
-  .task-input{
-    display:block;width:100%;border:none;border-bottom:1px solid transparent;background:transparent;
-    font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:17px;font-weight:500;
-    color:var(--text);padding:2px 0;margin-bottom:2px;
-  }
-  .detail-input{
-    display:block;width:100%;border:none;border-bottom:1px solid transparent;background:transparent;
-    font-size:13px;color:var(--text-soft);padding:2px 0;margin-bottom:8px;
-  }
-  .task-input::placeholder,.detail-input::placeholder{color:var(--muted);font-style:italic;opacity:.75;}
-  .task-input:focus,.detail-input:focus,.note-input:focus{
+  .note-input:focus{
     outline:none;border-bottom:1px solid var(--gold);
   }
 
@@ -664,7 +652,6 @@
           const iso = fmtISO(d);
           const isToday = iso === todayISO;
           const log = data.log[iso] || {done:false, note:''};
-          const t = data.days[i] || {task:'', detail:''};
           return `
           <div class="row ${isToday?'today':''}">
             <div class="marker"><span class="dot"></span></div>
@@ -674,8 +661,6 @@
                 <span class="day-date">${fmtShort(d)}</span>
                 ${isToday ? '<span class="today-flag">today</span>' : ''}
               </div>
-              <input class="task-input" data-field="task" data-idx="${i}" placeholder="What's the plan?" value="${escapeAttr(t.task)}" />
-              <input class="detail-input" data-field="detail" data-idx="${i}" placeholder="Add a detail (optional)" value="${escapeAttr(t.detail)}" />
               <div class="row-bottom">
                 <label class="done-toggle">
                   <input type="checkbox" data-iso="${iso}" ${log.done ? 'checked':''}/>
@@ -701,14 +686,6 @@
       el.addEventListener('click', ()=> goToDay(el.dataset.gotoDay));
     });
 
-    app.querySelectorAll('.task-input, .detail-input').forEach(el=>{
-      el.addEventListener('change', async (e)=>{
-        const idx = Number(e.target.dataset.idx);
-        const field = e.target.dataset.field;
-        weekCache[weekStartISO].days[idx] = { ...weekCache[weekStartISO].days[idx], [field]: e.target.value };
-        await saveWeek(weekStartISO);
-      });
-    });
     app.querySelectorAll('input[type=checkbox]').forEach(el=>{
       el.addEventListener('change', async (e)=>{
         const iso = e.target.dataset.iso;
@@ -737,7 +714,6 @@
     const weekStartISO = fmtISO(sundayOf(d));
     const data = weekCache[weekStartISO] || blankWeekData();
     const idx = d.getDay();
-    const t = data.days[idx] || {task:'', detail:''};
     const log = data.log[iso] || {done:false, note:''};
     const isToday = iso === todayISO;
     const dayIdeas = pipelineIdeas.filter(p => p.date === iso);
@@ -750,8 +726,6 @@
       </header>
 
       <section class="day-detail">
-        <input class="task-input" id="dayTaskInput" placeholder="What's the plan?" value="${escapeAttr(t.task)}" />
-        <input class="detail-input" id="dayDetailInput" placeholder="Add a detail (optional)" value="${escapeAttr(t.detail)}" />
         <label class="done-toggle">
           <input type="checkbox" id="dayDoneCheckbox" ${log.done ? 'checked':''}/>
           <span>Done</span>
@@ -766,14 +740,6 @@
     `;
 
     document.getElementById('backToWeekBtn').addEventListener('click', goToWeekFromDay);
-    document.getElementById('dayTaskInput').addEventListener('change', async (e)=>{
-      weekCache[weekStartISO].days[idx] = { ...weekCache[weekStartISO].days[idx], task: e.target.value };
-      await saveWeek(weekStartISO);
-    });
-    document.getElementById('dayDetailInput').addEventListener('change', async (e)=>{
-      weekCache[weekStartISO].days[idx] = { ...weekCache[weekStartISO].days[idx], detail: e.target.value };
-      await saveWeek(weekStartISO);
-    });
     document.getElementById('dayDoneCheckbox').addEventListener('change', async (e)=>{
       weekCache[weekStartISO].log[iso] = { ...(weekCache[weekStartISO].log[iso]||{}), done: e.target.checked };
       await saveWeek(weekStartISO);
