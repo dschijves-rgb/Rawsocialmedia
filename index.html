@@ -133,13 +133,12 @@
   .weekday-row span{font-size:11px;color:var(--muted);text-align:center;}
   .week-row{
     display:grid;grid-template-columns:repeat(7,1fr);
-    cursor:pointer;border-radius:6px;padding:3px 0;
   }
-  .week-row:active{background:rgba(var(--tint-rgb),0.08);}
   .day-cell{
     display:flex;align-items:center;justify-content:center;
-    height:36px;position:relative;
+    height:36px;position:relative;cursor:pointer;border-radius:6px;
   }
+  .day-cell:active{background:rgba(var(--tint-rgb),0.1);}
   .day-num{font-size:13px;color:var(--text);position:relative;z-index:1;}
   .day-cell.out .day-num{color:var(--muted);opacity:.4;}
   .day-cell.today::before{
@@ -594,7 +593,7 @@
                 const out = d.getMonth() !== m;
                 const isToday = fmtISO(d) === todayISO;
                 const hasIdea = pipelineIdeas.some(p => p.date === fmtISO(d));
-                return `<div class="day-cell ${out?'out':''} ${isToday?'today':''}"><span class="day-num">${d.getDate()}</span>${hasIdea?'<span class="idea-dot"></span>':''}</div>`;
+                return `<div class="day-cell ${out?'out':''} ${isToday?'today':''}" data-date="${fmtISO(d)}"><span class="day-num">${d.getDate()}</span>${hasIdea?'<span class="idea-dot"></span>':''}</div>`;
               }).join('')}
             </div>
           `).join('')}
@@ -626,8 +625,8 @@
     `;
 
     wireHeaderActions();
-    app.querySelectorAll('.week-row').forEach(row=>{
-      row.addEventListener('click', ()=> goToWeek(row.dataset.week));
+    app.querySelectorAll('.day-cell').forEach(cell=>{
+      cell.addEventListener('click', ()=> goToDay(cell.dataset.date));
     });
     document.getElementById('todayNavBtn').addEventListener('click', ()=>{
       goToWeek(fmtISO(sundayOf(today)));
