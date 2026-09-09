@@ -228,7 +228,9 @@
   .hamburger-btn{
     position:fixed;top:16px;left:16px;z-index:20;
     width:42px;height:42px;border-radius:50%;
-    background:var(--text);color:var(--bg);border:none;
+    background:var(--surface);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+    border:1px solid rgba(var(--tint-rgb),0.15);
+    color:var(--gold);
     font-size:18px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
     box-shadow:none;
@@ -438,14 +440,6 @@
   function applyDaylightMode(on){
     document.body.classList.toggle('daylight', on);
     daylightToggle.textContent = on ? '🌙' : '☀';
-    // Set this button's colors directly rather than trusting the CSS
-    // variable cascade to repaint it — guarantees the visual change happens
-    // regardless of any browser-specific repaint quirk.
-    const hamburgerBtn = document.getElementById('notesHamburger');
-    if (hamburgerBtn){
-      hamburgerBtn.style.background = on ? '#15130F' : '#EDEAE4';
-      hamburgerBtn.style.color = on ? '#F6F5F2' : '#0F0D0B';
-    }
     // backdrop-filter can fail to repaint on some mobile browsers when its
     // value changes via a custom property alone — force a reflow on every
     // glass-surface element so the blur actually updates immediately.
