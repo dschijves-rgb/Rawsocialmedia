@@ -441,7 +441,7 @@
     // backdrop-filter can fail to repaint on some mobile browsers when its
     // value changes via a custom property alone — force a reflow on every
     // glass-surface element so the blur actually updates immediately.
-    document.querySelectorAll('.notes-drawer, .cycle, .daylight-toggle-btn').forEach(el=>{ void el.offsetHeight; });
+    document.querySelectorAll('.notes-drawer, .cycle, .daylight-toggle-btn, .hamburger-btn, .notes-backdrop').forEach(el=>{ void el.offsetHeight; });
   }
   let daylightOn = false;
   try{ daylightOn = localStorage.getItem(DAYLIGHT_KEY) === 'on'; }catch(e){}
