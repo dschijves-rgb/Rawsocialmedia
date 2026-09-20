@@ -1,0 +1,7 @@
+name = "jarves-brain"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+# Secrets are set with `wrangler secret put`, never written here:
+#   ANTHROPIC_API_KEY
+#   SHARED_SECRET
