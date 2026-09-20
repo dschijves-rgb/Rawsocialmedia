@@ -93,6 +93,7 @@ check('forget removes a fact', /forgotten/i.test(r), r);
 // drawer + counts
 await page.click('#menuBtn');
 await page.waitForSelector('#drawer:not([hidden])');
+await page.waitForTimeout(350); // let the slide-in settle before any screenshot
 const factCount = await page.textContent('#factCount');
 const noteCount = await page.textContent('#noteCount');
 check('drawer fact count is right', factCount === '1', `got ${factCount}, expected 1`);
