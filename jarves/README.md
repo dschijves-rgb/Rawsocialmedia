@@ -12,10 +12,24 @@ working. Reasoning is not connected yet; see [Giving it a brain](#giving-it-a-br
 
 ## Install it on your phone
 
-1. Serve this repo over HTTPS. GitHub Pages works: Settings → Pages → deploy
-   from `main`. Your app lands at `https://<user>.github.io/jarves/`.
-2. Open that URL in **Chrome on Android**.
-3. Menu → **Add to Home screen**. It installs with its own icon and opens
+This repo is private, so GitHub Pages would need a paid plan. Cloudflare Pages
+is free either way, and it's the same `wrangler` the backend uses — one tool,
+one account.
+
+```bash
+npm install -g wrangler
+wrangler login
+./deploy.sh
+```
+
+`deploy.sh` builds a clean `dist/` containing only what the browser needs — the
+worker source and the test suites never reach the public URL — and ships it.
+It prints your address, something like `https://jarves.pages.dev`.
+
+Then on your phone:
+
+1. Open that URL in **Chrome on Android**.
+2. Menu → **Add to Home screen**. It installs with its own icon and opens
    full-screen, no browser bars.
 
 Voice needs HTTPS and microphone permission. `http://localhost` also counts as
@@ -70,8 +84,8 @@ wrangler secret put ANTHROPIC_API_KEY   # from console.anthropic.com
 wrangler secret put SHARED_SECRET       # any long random string
 ```
 
-Then edit `ALLOWED_ORIGINS` in `worker.js` to wherever you're serving the app,
-redeploy, and in the app: **menu → Brain → paste the worker URL and secret →
+Then check `ALLOWED_ORIGINS` in `worker.js` matches wherever you're serving the
+app (it defaults to `https://jarves.pages.dev`), redeploy, and in the app: **menu → Brain → paste the worker URL and secret →
 Connect**.
 
 ### What it costs
@@ -130,6 +144,7 @@ js/
     memory.js           remember / recall / forget / notes
     email.js            list / read / draft, behind an adapter
 backend/worker.js       holds the API key
+deploy.sh               builds dist/ and ships it to Cloudflare Pages
 test/                   e2e, wire and worker suites
 ```
 

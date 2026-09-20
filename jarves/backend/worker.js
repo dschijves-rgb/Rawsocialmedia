@@ -27,9 +27,12 @@ const API_VERSION = '2023-06-01';
 // or stolen client to roughly 40 cents a request.
 const MAX_TOKENS_CEILING = 16000;
 
-// Lock this down to where the app is actually served from.
+// Lock this down to where the app is actually served from. Origin is scheme +
+// host only — no path. Cloudflare Pages preview builds get their own subdomain
+// (abc123.jarves.pages.dev), so add one here if you ever need to test against a
+// preview rather than production.
 const ALLOWED_ORIGINS = [
-  'https://dschijves-rgb.github.io',
+  'https://jarves.pages.dev',
   'http://localhost:8731',
 ];
 
