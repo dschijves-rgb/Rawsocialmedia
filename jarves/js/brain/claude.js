@@ -16,8 +16,23 @@ import * as mem from '../memory.js';
 
 const STORAGE_KEY = 'jarves.endpoint';
 const SECRET_KEY = 'jarves.secret';
-const MODEL = 'claude-sonnet-5';
+const MODEL = 'claude-opus-5';
 const MAX_TOOL_ROUNDS = 6;
+
+// A ceiling, not a target — the system prompt is what keeps replies short. Set
+// low it would truncate a long answer mid-sentence, and you'd pay for the
+// wasted tokens anyway.
+const MAX_TOKENS = 16000;
+
+// Effort trades thoroughness against latency and cost. This is a voice
+// assistant, so answers need to start fast; 'medium' is the balance point.
+// Raise to 'high' if you start asking it harder questions and it feels shallow.
+const EFFORT = 'medium';
+
+// Opus 5's safety classifiers can decline a request (HTTP 200, stop_reason
+// 'refusal'). 'default' lets Anthropic route the retry by refusal category
+// rather than us pinning a model we'd then have to maintain.
+const FALLBACK_BETA = 'server-side-fallback-2026-07-01';
 
 let endpoint = localStorage.getItem(STORAGE_KEY) || '';
 let secret = localStorage.getItem(SECRET_KEY) || '';
@@ -83,7 +98,11 @@ export const claude = {
         signal,
         body: JSON.stringify({
           model: MODEL,
-          max_tokens: 1024,
+          max_tokens: MAX_TOKENS,
+          thinking: { type: 'adaptive' },
+          output_config: { effort: EFFORT },
+          fallbacks: 'default',
+          betas: [FALLBACK_BETA],
           system,
           messages,
           tools: tools.describe(),
@@ -95,6 +114,16 @@ export const claude = {
       }
 
       const data = await res.json();
+
+      // Always check stop_reason before reading content. On a refusal the
+      // content is empty and the fallback chain has already been tried.
+      if (data.stop_reason === 'refusal') {
+        return {
+          text: `I won't answer that one${data.stop_details?.explanation ? ` — ${data.stop_details.explanation}` : '.'}`,
+          toolCalls: calls,
+        };
+      }
+
       const blocks = data.content || [];
       messages.push({ role: 'assistant', content: blocks });
 

@@ -76,10 +76,30 @@ Then edit `ALLOWED_ORIGINS` in `worker.js` to wherever you're serving the app,
 redeploy, and in the app: **menu → Brain → paste the worker URL and secret →
 Connect**.
 
-Cloudflare's free tier covers this comfortably. You pay Anthropic per token —
-typically a few dollars a month at personal volume.
+### What it costs
 
-Once connected, every tool below becomes available to the model automatically.
+Cloudflare's free tier covers the worker comfortably. You pay Anthropic per
+token. Jarves runs on **Claude Opus 5** ($5 per million input tokens, $25 per
+million output), which works out to roughly **3¢ per conversational turn** —
+call it a few dollars a month at personal volume.
+
+If that's more than you want to spend, change `MODEL` in `js/brain/claude.js`
+to `claude-sonnet-5` — about 2.5× cheaper, and still very capable. That's a
+deliberate choice to make yourself rather than a default I picked for you.
+
+### Request settings worth knowing
+
+Set in `js/brain/claude.js`, all commented in place:
+
+- `EFFORT = 'medium'` — how hard the model thinks. This is a voice assistant, so
+  replies need to *start* fast. Raise to `'high'` if answers feel shallow.
+- `MAX_TOKENS = 16000` — a ceiling, not a target. Brevity comes from the system
+  prompt; a low ceiling just truncates long answers mid-sentence.
+- `fallbacks: 'default'` — if Opus 5's safety classifiers decline a request, the
+  API retries it on a suitable model inside the same call instead of failing.
+- Adaptive thinking is on, which is the current default for this model family.
+
+Once connected, every tool becomes available to the model automatically.
 Nothing else changes.
 
 ## Connecting real email
@@ -157,12 +177,24 @@ now use it. Teaching the *shell* brain to trigger it takes a pattern in
 ```bash
 npm install playwright
 cd jarves && python3 -m http.server 8731 &
-node test/e2e.mjs
+
+node test/e2e.mjs      # 28 checks — the app, in a real browser at phone size
+node test/wire.mjs     # 17 checks — the API request shape and the tool loop
+node test/worker.mjs   # 12 checks — the backend, no browser needed
 ```
 
-28 checks against the real app in a real browser at phone size: every command
-above, memory surviving a reload, the service worker, the theme toggle, and the
-offline-fallback path when the model endpoint is dead.
+**e2e** drives every command above, memory surviving a reload, the service
+worker, the theme toggle, and the fallback path when the endpoint is dead.
+
+**wire** points the app at a mock Anthropic endpoint and asserts the request we
+*would* send is correct — model, token ceiling, thinking, refusal fallbacks,
+tool schemas — then drives a full `tool_use → tool_result → text` round trip and
+confirms the tool really wrote to IndexedDB. Costs nothing and needs no key, so
+it can run before you ever deploy the worker.
+
+**worker** runs the Cloudflare handler in Node against a stubbed upstream:
+the `betas` → `anthropic-beta` header translation, the spend cap, auth
+rejection, CORS, and that the API key never reaches the client.
 
 ## Known limits
 

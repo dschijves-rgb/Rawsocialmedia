@@ -23,6 +23,10 @@
 const API = 'https://api.anthropic.com/v1/messages';
 const API_VERSION = '2023-06-01';
 
+// Worst case one call can cost. At Opus 5 output rates this bounds a runaway
+// or stolen client to roughly 40 cents a request.
+const MAX_TOKENS_CEILING = 16000;
+
 // Lock this down to where the app is actually served from.
 const ALLOWED_ORIGINS = [
   'https://dschijves-rgb.github.io',
@@ -69,15 +73,24 @@ export default {
     }
 
     // Cap what a stolen client can spend in one call.
-    body.max_tokens = Math.min(Number(body.max_tokens) || 1024, 2048);
+    body.max_tokens = Math.min(Number(body.max_tokens) || 16000, MAX_TOKENS_CEILING);
+
+    // The SDKs take betas as a request field; raw HTTP needs the header. The
+    // app sends `betas: [...]`, so translate and strip it — leaving it in the
+    // body would be rejected as an unknown parameter.
+    const betas = Array.isArray(body.betas) ? body.betas : [];
+    delete body.betas;
+
+    const headersOut = {
+      'content-type': 'application/json',
+      'x-api-key': env.ANTHROPIC_API_KEY,
+      'anthropic-version': API_VERSION,
+    };
+    if (betas.length) headersOut['anthropic-beta'] = betas.join(',');
 
     const upstream = await fetch(API, {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': env.ANTHROPIC_API_KEY,
-        'anthropic-version': API_VERSION,
-      },
+      headers: headersOut,
       body: JSON.stringify(body),
     });
 
