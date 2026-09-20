@@ -30,7 +30,7 @@ const MAX_TOKENS_CEILING = 16000;
 // Lock this down to where the app is actually served from.
 const ALLOWED_ORIGINS = [
   'https://dschijves-rgb.github.io',
-  'http://localhost:8000',
+  'http://localhost:8731',
 ];
 
 function cors(origin) {

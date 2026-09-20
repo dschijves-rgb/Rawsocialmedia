@@ -12,9 +12,8 @@ working. Reasoning is not connected yet; see [Giving it a brain](#giving-it-a-br
 
 ## Install it on your phone
 
-1. Serve the `jarves/` folder over HTTPS. GitHub Pages works: repo → Settings →
-   Pages → deploy from this branch. Your app lands at
-   `https://<user>.github.io/<repo>/jarves/`.
+1. Serve this repo over HTTPS. GitHub Pages works: Settings → Pages → deploy
+   from `main`. Your app lands at `https://<user>.github.io/jarves/`.
 2. Open that URL in **Chrome on Android**.
 3. Menu → **Add to Home screen**. It installs with its own icon and opens
    full-screen, no browser bars.
@@ -25,7 +24,6 @@ secure, which is what local development uses.
 To run it locally:
 
 ```bash
-cd jarves
 python3 -m http.server 8731
 # open http://localhost:8731
 ```
@@ -64,7 +62,7 @@ anyone who installs it could read it. So the key lives in a tiny server-side
 function instead.
 
 ```bash
-cd jarves/backend
+cd backend
 npm install -g wrangler
 wrangler login
 wrangler deploy
@@ -116,24 +114,23 @@ Jarves drafts mail. It does not send it, and there is no code path that can.
 ## How it's built
 
 ```
-jarves/
-  index.html            app shell
-  css/app.css           Aperture Gold & Silver, carried over from the calendar
-  js/
-    app.js              boot and wiring
-    ui.js               all DOM work; escapes before it formats
-    memory.js           IndexedDB — facts, notes, conversation
-    voice.js            speech in and out, with the Android quirks handled
-    brain/
-      index.js          picks a brain, falls back if one dies
-      local.js          the rule-based shell brain (works offline, no key)
-      claude.js         the real brain (needs an endpoint)
-    tools/
-      index.js          the registry
-      memory.js         remember / recall / forget / notes
-      email.js          list / read / draft, behind an adapter
-  backend/worker.js     holds the API key
-  test/e2e.mjs          drives the real app in a real browser
+index.html              app shell
+css/app.css             Aperture Gold & Silver, dark by default
+js/
+  app.js                boot and wiring
+  ui.js                 all DOM work; escapes before it formats
+  memory.js             IndexedDB — facts, notes, conversation
+  voice.js              speech in and out, with the Android quirks handled
+  brain/
+    index.js            picks a brain, falls back if one dies
+    local.js            the rule-based shell brain (works offline, no key)
+    claude.js           the real brain (needs an endpoint)
+  tools/
+    index.js            the registry
+    memory.js           remember / recall / forget / notes
+    email.js            list / read / draft, behind an adapter
+backend/worker.js       holds the API key
+test/                   e2e, wire and worker suites
 ```
 
 Two ideas hold the whole thing together:
@@ -176,7 +173,7 @@ now use it. Teaching the *shell* brain to trigger it takes a pattern in
 
 ```bash
 npm install playwright
-cd jarves && python3 -m http.server 8731 &
+python3 -m http.server 8731 &
 
 node test/e2e.mjs      # 28 checks — the app, in a real browser at phone size
 node test/wire.mjs     # 17 checks — the API request shape and the tool loop
@@ -211,6 +208,5 @@ rejection, CORS, and that the API key never reaches the client.
 
 1. Connect the model — the single biggest jump in capability
 2. Real Gmail via the worker
-3. Calendar, wired to the Raw Social Media Calendar app
-4. Semantic recall
-5. Native Android wrapper for the always-on wake word
+3. Semantic recall
+4. Native Android wrapper for the always-on wake word
